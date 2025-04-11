@@ -11,7 +11,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func ConnectDB(){
+var Client *mongo.Client
+
+func ConnectDB() {
 	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
@@ -27,16 +29,20 @@ func ConnectDB(){
 	clientOptions := options.Client().ApplyURI(uri)
 
 	// Connect to MongoDB
-	client, err := mongo.Connect(context.Background(), clientOptions)
+	var err error
+	Client, err = mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer client.Disconnect(context.Background())
 
 	// Check the connection
-	err = client.Ping(context.Background(), nil)
+	err = Client.Ping(context.Background(), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("Successfully connected to MongoDB Atlas!")
+}
+
+func GetCollection(collectionName string) *mongo.Collection {
+	return Client.Database("yt_backend").Collection(collectionName)
 }
