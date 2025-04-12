@@ -20,6 +20,7 @@ func main() {
 	routes.UserRoutes(router)
 	routes.VideoRoutes(router)
 	routes.SubscriptionRoutes(router)
+	routes.VideoCommentRoutes(router)
 
-	router.Run(":8080") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	router.Run(":8080") // "localhost:8080"
 }
