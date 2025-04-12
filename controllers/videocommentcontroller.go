@@ -31,6 +31,7 @@ func PostComment(c *gin.Context) {
 	content := c.PostForm("content")
 	if content == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment cannot be empty"})
+		return
 	}
 
 	// Get user details
@@ -81,7 +82,7 @@ func DeleteComment(c *gin.Context) {
 
 	commentID := c.Param("commentID")
 	if commentID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Video ID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment ID is required"})
 		return
 	}
 
@@ -120,13 +121,14 @@ func EditComment(c *gin.Context) {
 
 	commentID := c.Param("commentID")
 	if commentID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Video ID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment ID is required"})
 		return
 	}
 
 	content := c.PostForm("content")
 	if content == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment cannot be empty"})
+		return
 	}
 
 	commentCollection := db.GetCollection("videocomments")
@@ -145,7 +147,7 @@ func EditComment(c *gin.Context) {
 
 	update := bson.M{
 		"$set": bson.M{
-			"contect":   content,
+			"content":   content,
 			"updatedAt": time.Now(),
 		},
 	}
@@ -174,3 +176,71 @@ func EditComment(c *gin.Context) {
 	})
 
 }
+
+
+// func EditComment(c *gin.Context) {
+// 	userID, exists := c.Get("user_id")
+// 	if !exists {
+// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+// 		return
+// 	}
+
+// 	commentID := c.Param("commentID")
+// 	if commentID == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment ID is required"})
+// 		return
+// 	}
+
+// 	var input struct {
+// 		Content string `json:"content" binding:"required"`
+// 	}
+
+// 	if err := c.ShouldBindJSON(&input); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Comment cannot be empty"})
+// 		return
+// 	}
+
+// 	commentCollection := db.GetCollection("videocomments")
+
+// 	var comment models.VideoComment
+// 	err := commentCollection.FindOne(context.TODO(), bson.M{"_id": commentID}).Decode(&comment)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
+// 		return
+// 	}
+
+// 	if comment.Owner.ID != userID {
+// 		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to edit this comment"})
+// 		return
+// 	}
+
+// 	update := bson.M{
+// 		"$set": bson.M{
+// 			"content":   input.Content,
+// 			"updatedAt": time.Now(),
+// 		},
+// 	}
+
+// 	_, err = commentCollection.UpdateOne(
+// 		context.TODO(),
+// 		bson.M{"_id": commentID},
+// 		update,
+// 	)
+
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update comment"})
+// 		return
+// 	}
+
+// 	var editedComment models.VideoComment
+// 	err = commentCollection.FindOne(context.TODO(), bson.M{"_id": commentID}).Decode(&editedComment)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated comment"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message": "Comment edited successfully",
+// 		"comment": editedComment,
+// 	})
+// }

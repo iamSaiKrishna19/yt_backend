@@ -21,6 +21,7 @@ func main() {
 	routes.VideoRoutes(router)
 	routes.SubscriptionRoutes(router)
 	routes.VideoCommentRoutes(router)
+	routes.LikeRoutes(router)
 
 	router.Run(":8080") // "localhost:8080"
 }

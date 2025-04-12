@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -48,15 +49,25 @@ func SignUp(c *gin.Context) {
 	// Check if user already exists
 	collection := db.GetCollection("users")
 	filter := bson.M{
-		"Username": user.Username,
-		"email":    user.Email,
+		"$or": []bson.M{
+			{"Username": user.Username},
+			{"email": user.Email},
+		},
 	}
 
-	err = collection.FindOne(context.TODO(), filter).Err() // it returns nil if user is already found if not then return not nil
-	// fmt.Println(err)
+	err = collection.FindOne(context.TODO(), filter).Err()
+	fmt.Println(err)
+
 	if err == nil {
-		fmt.Println("User already exist")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User with this username exist"})
+		// Found a user – duplicate
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username or Email already exists"})
+		return
+	}
+
+	if err != mongo.ErrNoDocuments {
+		// Real database error
+		fmt.Println("Database error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 		return
 	}
 

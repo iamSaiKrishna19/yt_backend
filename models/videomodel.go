@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Video struct {
-	ID          string    `json:"id"`
+	ID           string    `json:"id" bson:"_id" validate:"required"`
 	Title       string    `json:"title"`
 	URL         string    `json:"url"`
 	Owner       User      `json:"owner"`

@@ -10,8 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// i have to do subscriber already exist or not
 func Subscribe(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -41,6 +43,24 @@ func Subscribe(c *gin.Context) {
 		return
 	}
 
+	subscriptionCollection := db.GetCollection("subscriptions")
+
+	// Check if subscription already exists
+	filter := bson.M{
+		"subscribers._id": userID,
+		"channelName._id": video.ChannelName.ID,
+	}
+
+	var existingSubscription models.Subscription
+	err = subscriptionCollection.FindOne(context.TODO(), filter).Decode(&existingSubscription)
+	if err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "You are already subscribed to this channel"})
+		return
+	} else if err != mongo.ErrNoDocuments {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking existing subscription"})
+		return
+	}
+
 	subscription := models.Subscription{
 		ID:          uuid.New().String(),
 		ChannelName: video.ChannelName,
@@ -48,8 +68,6 @@ func Subscribe(c *gin.Context) {
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
-
-	subscriptionCollection := db.GetCollection("subscriptions")
 
 	_, err = subscriptionCollection.InsertOne(context.TODO(), subscription)
 	if err != nil {
