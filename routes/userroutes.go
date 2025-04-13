@@ -8,9 +8,13 @@ import (
 )
 
 func UserRoutes(incomingRoutes *gin.Engine) {
-	incomingRoutes.POST("/users/signup", controllers.SignUp)
-	incomingRoutes.POST("/users/login", controllers.Login)
-	incomingRoutes.PUT("/users/change-password", middleware.AuthMiddleware(), controllers.ChangePassword)
-	incomingRoutes.PUT("/users/create-channel", middleware.AuthMiddleware(), controllers.CreateChannel)
-	incomingRoutes.GET("/users/subscribed-to-channel", middleware.AuthMiddleware(), controllers.SubscribedToChannel)
+	userRoutes := incomingRoutes.Group("/users")
+	{
+		userRoutes.POST("/signup", controllers.SignUp)
+		userRoutes.POST("/login", controllers.Login)
+		userRoutes.POST("/logout", middleware.AuthMiddleware(), controllers.Logout)
+		userRoutes.PUT("/change-password", middleware.AuthMiddleware(), controllers.ChangePassword)
+		userRoutes.PUT("/create-channel", middleware.AuthMiddleware(), controllers.CreateChannel)
+		userRoutes.GET("/subscribed-to-channel", middleware.AuthMiddleware(), controllers.SubscribedToChannel)
+	}
 }

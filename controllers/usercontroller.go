@@ -373,3 +373,42 @@ func SubscribedToChannel(c *gin.Context) {
 		"count":    len(subscribedChannels),
 	})
 }
+
+func Logout(c *gin.Context) {
+	// Get the token from the context set by AuthMiddleware
+	userID := c.GetString("user_id")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	// Get the token from the Authorization header
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No token provided"})
+		return
+	}
+
+	// Extract the token (remove "Bearer " prefix if present)
+	token := authHeader
+	if len(token) > 7 && token[:7] == "Bearer " {
+		token = token[7:]
+	}
+
+	// Add token to blacklist
+	blacklistEntry := models.TokenBlacklist{
+		Token:     token,
+		CreatedAt: time.Now(),
+	}
+
+	blacklistCollection := db.GetCollection("token_blacklist")
+	_, err := blacklistCollection.InsertOne(context.TODO(), blacklistEntry)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to invalidate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Logout successful",
+	})
+}
