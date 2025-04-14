@@ -11,18 +11,22 @@ import (
 
 func main() {
 	db.ConnectDB()
+	
 	router := gin.Default()
+	
 	router.GET("/hello", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Hello World!",
 		})
 	})
+	
 	routes.UserRoutes(router)
 	routes.VideoRoutes(router)
 	routes.SubscriptionRoutes(router)
 	routes.VideoCommentRoutes(router)
 	routes.LikeRoutes(router)
 	routes.SetupWatchHistoryRoutes(router)
-
+	routes.SetupPlaylistRoutes(router)
+	
 	router.Run(":8080") // "localhost:8080"
 }
