@@ -17,10 +17,8 @@ type Playlist struct {
 
 // AddVideo adds a video to the playlist
 func (p *Playlist) AddVideo(videoID string) {
-	for _, id := range p.VideoIDs {
-		if id == videoID {
-			return
-		}
+	if slices.Contains(p.VideoIDs, videoID) {
+		return
 	}
 	p.VideoIDs = append(p.VideoIDs, videoID)
 	p.UpdatedAt = time.Now()
@@ -28,23 +26,13 @@ func (p *Playlist) AddVideo(videoID string) {
 
 // HasVideo checks if a video exists in the playlist
 func (p *Playlist) HasVideo(videoID string) bool {
-	for _, id := range p.VideoIDs {
-		if id == videoID {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(p.VideoIDs, videoID)
 }
 
 // RemoveVideo removes a video from the playlist
 func (p *Playlist) RemoveVideo(videoID string) {
-	for i, id := range p.VideoIDs {
-		if id == videoID {
-			p.VideoIDs = slices.Delete(p.VideoIDs, i, i+1)
-			p.UpdatedAt = time.Now()
-			break
-		}
-	}
+	p.VideoIDs = slices.Delete(p.VideoIDs, slices.Index(p.VideoIDs, videoID), slices.Index(p.VideoIDs, videoID)+1)
+	p.UpdatedAt = time.Now()
 }
 
 // GetVideoCount returns the number of videos in the playlist
